@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mariadb:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: auth_service_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: auth_password
+    ports:
+      - "3307:3306"  # Change host port to 3307 to avoid conflict
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_DATABASE: auth_service_db
+      DB_USERNAME: auth_user
+      DB_PASSWORD: auth_password
+    volumes:
+      - ./auth-service:/var/www/html
+    depends_on:
+      - mariadb
+    ports:
+      - "8080:80"
+    command: sh -c "php artisan app:setup && apache2-foreground"
+
+  api-consumer:
+    build:
+      context: ./api-consumer
+      dockerfile: Dockerfile
+    container_name: api-consumer
+    restart: unless-stopped
+    volumes:
+      - ./api-consumer:/var/www/html
+    ports:
+      - "8081:80"
+    command: apache2-foreground
+
+volumes:
+  mariadb_data:

@@ -47,83 +47,66 @@
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var loginForm = document.getElementById('login-form');
-        var validationResult = document.getElementById('validation-result');
-        var resultMessage = document.getElementById('result-message');
+    $(document).ready(function() {
+        var loginForm = $('#login-form');
+        var validationResult = $('#validation-result');
+        var resultMessage = $('#result-message');
 
-        // var microserviceUrl = 'http://127.0.0.1:8001/api/validate-token';
-        var microserviceUrl = '{{ env('TOKEN_VALIDATION_SERVICE_URL') }}';
-        loginForm.addEventListener('submit', function(event) {
+
+        loginForm.on('submit', function(event) {
             event.preventDefault();
-            var formData = new FormData(loginForm);
+            var formData = new FormData(this);
 
-            fetch('/api/login', {
-                method: 'POST',
-                body: formData,
+            // Show loading message
+            resultMessage.text('Processing...');
+            validationResult.removeClass().addClass('alert alert-info').show();
+
+            $.ajax({
+                url: '/api/login',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.redirect) {
-                    // Redirect to the token-result page with the token
-                    window.location.href = data.redirect;
-                } else{
-                if (data.token) {
-
-                    // Token received, now validate it
-                    console.log(data.data.token);
-
-                    // validateToken(data.data.token);
-                } else {
-                    // Handle login error
-                    resultMessage.textContent = 'Login failed. Please check your credentials and try again.';
-                    //change style to danger container
-                    validationResult.className = 'alert alert-danger';
-                    // fade it out slowly after 5 seconds
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        console.log(data);
+                        if (data.status != 200) {
+                            if (data.errors) {
+                                resultMessage.text(Object.values(data.errors).flat().join(' '));
+                            } else {
+                                resultMessage.text(data.error_message);
+                            }
+                            validationResult.removeClass().addClass('alert alert-danger').show();
+                            setTimeout(function() {
+                                validationResult.hide();
+                            }, 5000);
+                        } else {
+                            validationResult.hide();
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr);
+                  if(xhr.responseJSON.error_message){
+                    resultMessage.text(xhr.responseJSON.error_message);
+                    }else{
+                    resultMessage.text('An error occurred while processing the request.');
+                    }
+                    validationResult.removeClass().addClass('alert alert-danger').show();
                     setTimeout(function() {
-                        validationResult.style.display = 'none';
+                        validationResult.hide();
                     }, 5000);
-                    validationResult.style.display = 'block';
                 }
-            }
-            })
-            .catch(error => {
-                console.error('Error:', error);
             });
         });
-
-        function validateToken(token) {
-    fetch(microserviceUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token: token })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('error : ' +response.message);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data) {
-            resultMessage.textContent = 'Token is valid.';
-            validationResult.className = 'alert alert-success';
-        }
-        setTimeout(function() {
-            validationResult.style.display = 'none';
-        }, 5000);
-        validationResult.style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
-}
     });
 </script>
+
 @endsection

@@ -29,6 +29,8 @@ class FreeIPAAuthService
                 // Create the user if not found in the database
                 $user = User::create(['username' => $credentials['username'], 'password' => bcrypt($credentials['password'])]);
             }
+            //remove freeipa key from credentials
+            unset($credentials['freeipa']);
             Auth::attempt($credentials);
             $token = JWTAuth::fromUser($user);  // Generate token from user
             return $token;

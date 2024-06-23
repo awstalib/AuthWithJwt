@@ -19,8 +19,7 @@ class AuthController extends Controller
     }
     public function LoginForm()
     {
-        $token_validation_service_url_config = config('services.microservice.token_validation_service_url');
-        return view('auth/login',compact('token_validation_service_url_config'));
+        return view('auth/login');
     }
     public function loginApi(LoginRequest $request)
     {

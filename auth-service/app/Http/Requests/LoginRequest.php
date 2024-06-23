@@ -18,7 +18,7 @@ class LoginRequest extends FormRequest
         return [
             'username' => ['required', 'string'], 
             'password' => ['required', 'string'],
-            'freeipa' => ['boolean']
+            // 'freeipa' => ['boolean']
         ];
     }
     public function credentials(): array

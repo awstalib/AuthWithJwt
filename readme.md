@@ -14,8 +14,8 @@ Make sure you have the following software installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/yourrepository.git
-   cd yourrepository
+   git clone https://github.com/awstalib/AuthWithJwt
+   cd AuthWithJwt
    ```
 2. Build and start the Docker containers:
 
@@ -39,4 +39,7 @@ http://localhost:8080/login
 
 SetupCommand
 The SetupCommand handles the initial setup of the auth-service application, including generating a free user. It logs messages to the console to provide feedback during the setup process.
-```bash php artisan app:setup
+
+```bash
+ php artisan app:setup
+ ```
